@@ -1,0 +1,38 @@
+package com.JungleSocks;
+
+import java.util.concurrent.TimeUnit;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import com.jungle.pageObject.JungleSocksPageObject;
+
+public class JungleSocks {
+		
+		public static WebDriver driver ;
+		
+		  @BeforeMethod
+		  public void openBrowser() {
+			 
+			 driver = new FirefoxDriver();
+			 driver.get("https://jungle-socks.herokuapp.com/");
+			 driver.manage().timeouts().implicitlyWait(2, TimeUnit.SECONDS);
+			 System.out.println("Passed");
+		  }
+
+		@AfterMethod
+		  public void closeBrowser() {
+			//close the driver 
+			  driver.quit();
+			  
+}
+		  
+		  @Test
+		  public void verifyTaxes(){
+			  
+			  JungleSocksPageObject.calculateTaxes(driver);
+		  }
+}
