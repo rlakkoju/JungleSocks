@@ -13,8 +13,6 @@ import org.openqa.selenium.support.ui.Select;
 import org.testng.Assert;
 
 public class JungleSocksPageObject {
-
-	
 	
 	public static void calculateTaxes(WebDriver driver){
 		
