@@ -1,0 +1,123 @@
+package com.jungle.pageObject;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.Random;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
+
+public class JungleSocksPageObject {
+
+	
+	
+	public static void calculateTaxes(WebDriver driver){
+		
+		// initialize random for generating quatities randomly
+		Random rand = new Random();
+		// read product name, value, inventory into arr_products
+		JSONArray arr_products = readFromJsonFile ("c:\\Users\\rlakkoju\\Documents\\JungleSocks\\Jungle_Taxes.json", "products");
+		// read taxes state, value into arr_states
+		JSONArray arr_states = readFromJsonFile ("c:\\Users\\rlakkoju\\Documents\\JungleSocks\\Jungle_Taxes.json", "taxes");
+		
+		// for each state input repeat the checkout
+        for(int i = 0; i < arr_states.length(); i++) {
+        	// initialize web inputs and outputs
+        	double web_subtotal=0.0;
+    		double web_taxes=0.0;
+    		double web_total=0.0;
+    		int web_quantity=0;
+    		String web_state;
+        // get products and generate random quantity for each product
+        for(int j = 0; j < arr_products.length(); j++){  
+        	try {
+      		  String name = arr_products.getJSONObject(j).getString("name");
+              float price = (float) arr_products.getJSONObject(j).getDouble("price");
+              int inventory_count = (int) arr_products.getJSONObject(j).getDouble("inventory_count");
+              //System.out.println(name + " " + price + " " + inventory_count);    
+              web_quantity  = rand.nextInt(inventory_count);
+              String web_name = "line_item_quantity_"+name;
+              driver.findElement(By.id(web_name)).sendKeys(String.valueOf(web_quantity));
+
+              web_subtotal = web_subtotal + web_quantity*price;  
+              System.out.println("Input: ");
+              System.out.println("Name " + name);
+              System.out.println("Quantity " + web_quantity);
+        	}
+              catch (Exception ex) {
+         		}
+        }
+          try {
+        	  // get state name, and tax %
+		   String state = arr_states.getJSONObject(i).getString("state");
+           float value = (float) arr_states.getJSONObject(i).getDouble("value");
+           Select sel = new Select (driver.findElement(By.name("state")));
+           sel.selectByValue(state.toUpperCase());
+           
+      	   driver.findElement(By.xpath("//input[@name='commit']")).click();
+
+           // Calculate expected output values
+           web_state = state;
+           web_taxes = web_subtotal*value;
+           web_total = web_subtotal + web_taxes;
+           System.out.println("State " + web_state);
+           // Input the above in page 1 , then click
+           System.out.println("Output expected:");
+           System.out.println("sub total " + String.format("$%.2f", web_subtotal));
+           Assert.assertEquals (driver.findElement(By.id(("subtotal"))).getText(),String.format("$%.2f", web_subtotal));
+           System.out.println("Taxes " + String.format("$%.2f", web_taxes));
+           Assert.assertEquals (driver.findElement(By.id(("taxes"))).getText(),String.format("$%.2f", web_taxes));
+
+           System.out.println("Total " + String.format("$%.2f",web_total));
+           Assert.assertEquals (driver.findElement(By.id(("total"))).getText(),String.format("$%.2f", web_total));
+
+           // Validate these values with page 2 value.
+     	  driver.navigate().back();
+     	  driver.navigate().refresh();
+
+          }
+          catch (Exception ex) {
+        	  
+   		}
+          
+        }
+        }
+	
+public static JSONArray readFromJsonFile(String fileName, String key){
+    //ArrayList<String, Float> result = new ArrayList<String>();
+	  JSONArray arr=null;
+
+    try{
+  	  JSONObject jsonObject = new JSONObject (readFile(fileName));
+  	  
+        arr = jsonObject.getJSONArray(key);
+
+    }
+    catch(Exception ex){
+        System.out.println(ex.toString());
+    }
+    return arr;
+}
+
+public static String readFile(String filename) {
+  String result = "";
+  try {
+      BufferedReader br = new BufferedReader(new FileReader(filename));
+      StringBuilder sb = new StringBuilder();
+      String line = br.readLine();
+      while (line != null) {
+          sb.append(line);
+          line = br.readLine();
+      }
+      result = sb.toString();
+  } catch(Exception e) {
+      e.printStackTrace();
+  }
+  return result;
+}
+}
